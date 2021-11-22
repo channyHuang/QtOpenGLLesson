@@ -16,12 +16,19 @@ void GlWidget::initShader() {
 
     // get location number of attribute members in shader
     stShaderLocation.posVertex = m_shader->attributeLocation("posVertex");
+    stShaderLocation.colVertex = m_shader->attributeLocation("colVertex");
 }
 
 static const GLfloat VERTEX_DATA[] = {
     -0.5f, -0.5f, 0.0f,
     0.5f, -0.5f, 0.0f,
     -0.5f, 0.5f, 0.0f
+};
+
+static GLfloat colors[] = {
+    1.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f,
+    0.0f, 0.0f, 1.0f
 };
 
 void GlWidget::initializeGL() {
@@ -39,9 +46,16 @@ void GlWidget::initializeGL() {
     initShader();
 
     m_vbo->bind();
-    m_vbo->allocate(VERTEX_DATA, 3*3* sizeof(GLfloat));
-    m_f->glEnableVertexAttribArray(stShaderLocation.posVertex);
-    m_f->glVertexAttribPointer(stShaderLocation.posVertex, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), 0);
+    // allocate space of vbo
+    m_vbo->allocate(VERTEX_DATA, sizeof(VERTEX_DATA) + sizeof(colors));
+    // write color data to buffer
+    m_vbo->write(sizeof(VERTEX_DATA), colors, sizeof(colors));
+
+    // set buffer position
+    m_shader->setAttributeBuffer(stShaderLocation.posVertex, GL_FLOAT, 0, 3);
+    m_shader->setAttributeBuffer(stShaderLocation.colVertex, GL_FLOAT, sizeof(VERTEX_DATA), 3);
+    m_shader->enableAttributeArray(stShaderLocation.posVertex);
+    m_shader->enableAttributeArray(stShaderLocation.colVertex);
 
     m_vbo->release();
     m_vao->release();

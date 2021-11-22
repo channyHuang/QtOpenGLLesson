@@ -25,6 +25,7 @@ private:
     // in location in shader
     struct {
         GLuint posVertex;
+        GLuint colVertex;
     } stShaderLocation;
 
 private:
