@@ -30,3 +30,10 @@
 *.exe
 *.out
 *.app
+
+# Mac crap
+.DS_Store
+
+**/build/
+**/*DS_Store
+**/*.user
