@@ -6,6 +6,7 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLFunctions>
 #include <QOpenGLBuffer>
+#include <QMatrix4x4>
 
 class GlWidget : public QOpenGLWidget
 {
@@ -26,6 +27,7 @@ private:
     struct {
         GLuint posVertex;
         GLuint colVertex;
+        GLuint matrixUniform;
     } stShaderLocation;
 
 private:
@@ -33,6 +35,9 @@ private:
     QOpenGLShaderProgram *m_shader;
     QOpenGLFunctions *m_f;
     QOpenGLBuffer *m_vbo;
+
+    QVector3D m_vRotationAngle = QVector3D(0, 0, 0);
+    QMatrix4x4 m_matrix;
 };
 
 #endif // GLWIDGET_H
