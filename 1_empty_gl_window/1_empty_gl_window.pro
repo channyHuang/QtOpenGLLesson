@@ -10,10 +10,13 @@ CONFIG += c++11
 
 SOURCE_FILES = $$files($$PWD/*.cpp, false)
 HEADER_FILES = $$files($$PWD/*.h, false)
+RESOURCE_FILES = $$files($$PWD/*.qrc, false)
 
 SOURCES += $${SOURCE_FILES}
 
 HEADERS += $${HEADER_FILES}
+
+RESOURCES += $${RESOURCE_FILES}
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
