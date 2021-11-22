@@ -22,6 +22,11 @@ protected:
 private:
     void initShader();
 
+    // in location in shader
+    struct {
+        GLuint posVertex;
+    } stShaderLocation;
+
 private:
     QOpenGLVertexArrayObject *m_vao;
     QOpenGLShaderProgram *m_shader;

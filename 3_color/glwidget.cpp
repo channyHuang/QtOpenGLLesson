@@ -13,6 +13,9 @@ void GlWidget::initShader() {
     if (!m_shader->link()) {
         qDebug() << "shader link failed";
     }
+
+    // get location number of attribute members in shader
+    stShaderLocation.posVertex = m_shader->attributeLocation("posVertex");
 }
 
 static const GLfloat VERTEX_DATA[] = {
@@ -37,8 +40,8 @@ void GlWidget::initializeGL() {
 
     m_vbo->bind();
     m_vbo->allocate(VERTEX_DATA, 3*3* sizeof(GLfloat));
-    m_f->glEnableVertexAttribArray(0);
-    m_f->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), 0);
+    m_f->glEnableVertexAttribArray(stShaderLocation.posVertex);
+    m_f->glVertexAttribPointer(stShaderLocation.posVertex, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), 0);
 
     m_vbo->release();
     m_vao->release();
