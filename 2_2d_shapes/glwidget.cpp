@@ -15,6 +15,12 @@ void GlWidget::initShader() {
     }
 }
 
+static const GLfloat VERTEX_DATA[] = {
+    -0.5f, -0.5f, 0.0f,
+    0.5f, -0.5f, 0.0f,
+    -0.5f, 0.5f, 0.0f
+};
+
 void GlWidget::initializeGL() {
     m_vao = new QOpenGLVertexArrayObject;
     m_shader = new QOpenGLShaderProgram;
@@ -23,14 +29,32 @@ void GlWidget::initializeGL() {
 
     m_vao->create();
     m_shader->create();
+    m_vbo->create();
 
     // load shader
     m_vao->bind();
     initShader();
+
+    m_vbo->bind();
+    m_vbo->allocate(VERTEX_DATA, 3*3* sizeof(GLfloat));
+    m_f->glEnableVertexAttribArray(0);
+    m_f->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), 0);
+
+    m_vbo->release();
     m_vao->release();
 }
 
-void GlWidget::paintGL() {}
+void GlWidget::paintGL() {
+    // set background color
+    m_f->glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    m_f->glClearColor(0.0f, 0.2f, 0.0f, 1.0f);
+    // draw
+    m_vao->bind();
+    m_shader->bind();
+    m_f->glDrawArrays(GL_TRIANGLES, 0, 3);
+    m_shader->release();
+    m_vao->release();
+}
 
 void GlWidget::resizeGL(int w, int h) {
 
