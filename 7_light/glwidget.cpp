@@ -26,20 +26,23 @@ void GlWidget::initShader() {
     // get location number of attribute members in shader
     stShaderLocation.posVertex = m_shader->attributeLocation("posVertex");
     stShaderLocation.posTexture = m_shader->attributeLocation("posTexture");
-    stShaderLocation.mvpMatrixUniform = m_shader->uniformLocation("mvp_matrix");
+    stShaderLocation.mvMatrixUniform = m_shader->uniformLocation("mv_matrix");
+    stShaderLocation.projMatrixUniform = m_shader->uniformLocation("proj_matrix");
+    stShaderLocation.lightPos = m_shader->uniformLocation("lightPos");
+    stShaderLocation.normalMatrixUniform = m_shader->uniformLocation("normalMatrixUniform");
 }
 
 void GlWidget::initObject() {
     VertexData vertices[] = {
-        {QVector3D(-1.0f, -1.0f,  1.0f), QVector2D(0.5f, 0.5f)},
-        {QVector3D(1.0f, -1.0f,  1.0f), QVector2D(0.5f, 0.5f)},
-        {QVector3D(1.0f, -1.0f,  -1.0f), QVector2D(0.5f, 0.5f)},
-        {QVector3D(-1.0f, -1.0f,  -1.0f), QVector2D(0.5f, 0.5f)},
+        {QVector3D(-1.0f, -1.0f,  1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.5f, 0.5f)},
+        {QVector3D(1.0f, -1.0f,  1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.5f, 0.5f)},
+        {QVector3D(1.0f, -1.0f,  -1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.5f, 0.5f)},
+        {QVector3D(-1.0f, -1.0f,  -1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.5f, 0.5f)},
 
-        {QVector3D(-1.0f, 1.0f,  1.0f), QVector2D(0.5f, 1.f)},
-        {QVector3D(1.0f, 1.0f, 1.0f), QVector2D(0.f, 0.5f)},
-        {QVector3D(1.0f, 1.0f, -1.0f), QVector2D(0.f, 0.5f)},
-        {QVector3D(-1.0f, 1.0f, -1.0f), QVector2D(0.f, 0.5f)}
+        {QVector3D(-1.0f, 1.0f,  1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.5f, 1.f)},
+        {QVector3D(1.0f, 1.0f, 1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.f, 0.5f)},
+        {QVector3D(1.0f, 1.0f, -1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.f, 0.5f)},
+        {QVector3D(-1.0f, 1.0f, -1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.f, 0.5f)}
     };
     GLushort indices[] = {
             0, 1, 3, 2, 2,     // Face bottom
@@ -108,13 +111,15 @@ void GlWidget::initializeGL() {
     m_ibo->bind();
     m_shader->bind();
 
+    m_shader->setUniformValue("texture", 0);
     // set buffer position
     m_shader->enableAttributeArray(stShaderLocation.posVertex);
     m_shader->enableAttributeArray(stShaderLocation.posTexture);
+    m_shader->enableAttributeArray(stShaderLocation.norVertex);
 
     m_shader->setAttributeBuffer(stShaderLocation.posVertex, GL_FLOAT, offsetof(VertexData, position), 3, sizeof(VertexData));
     m_shader->setAttributeBuffer(stShaderLocation.posTexture, GL_FLOAT, offsetof(VertexData, texcoord), 2, sizeof(VertexData));
-
+    m_shader->setAttributeBuffer(stShaderLocation.norVertex, GL_FLOAT, offsetof(VertexData, normal), 3, sizeof(VertexData));
 
     m_shader->release();
     m_ibo->release();
@@ -145,7 +150,13 @@ void GlWidget::paintGL() {
     m_texture->bind();
     m_shader->setUniformValue("texture", 0);
 
-    m_shader->setUniformValue(stShaderLocation.mvpMatrixUniform, m_projection * m_matrix);
+    m_shader->setUniformValue(stShaderLocation.mvMatrixUniform, m_matrix);
+    m_shader->setUniformValue(stShaderLocation.projMatrixUniform, m_projection);
+    m_shader->setUniformValue(stShaderLocation.lightPos, QVector3D(0, 0, 70));
+
+    QMatrix3x3 normalMatrix = m_matrix.normalMatrix();
+    m_shader->setUniformValue(stShaderLocation.normalMatrixUniform, normalMatrix);
+
     m_f->glDrawElements(GL_TRIANGLE_STRIP, nIndexCount, GL_UNSIGNED_SHORT, 0);
 
     m_texture->release();

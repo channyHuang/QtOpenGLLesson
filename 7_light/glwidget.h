@@ -36,12 +36,17 @@ private:
     // in location in shader
     struct {
         GLuint posVertex;
+        GLuint norVertex;
         GLuint posTexture;
-        GLuint mvpMatrixUniform;
+        GLuint mvMatrixUniform;
+        GLuint projMatrixUniform;
+        GLuint lightPos;
+        GLuint normalMatrixUniform;
     } stShaderLocation;
 
     struct VertexData {
         QVector3D position;
+        QVector3D normal;
         QVector2D texcoord;
     };
 
