@@ -1,17 +1,15 @@
 #include "glwidget.h"
 
+// read value from pro file to get .pro file path
+#define CONFIG2STR(R) #R
+#define CONFIG2QSTR(R) CONFIG2STR(R)
+
 GlWidget::GlWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
     // rotate every second
     timer.setInterval(1000);
     connect(&timer, &QTimer::timeout, this, [&]{
-        m_rRotateSpeed *= 0.99;
-        if (m_rRotateSpeed < 0.01) {
-            m_rRotateSpeed = 1.0;
-        } else {
-            m_rotation = QQuaternion::fromAxisAndAngle(m_vRotationAxis, m_rRotateSpeed);
-        }
-        update();
+
     });
 }
 
@@ -103,10 +101,6 @@ void GlWidget::initializeGL() {
 
     m_f->glEnable(GL_DEPTH_TEST);
     m_f->glEnable(GL_CULL_FACE);
-    timer.start();
-
-    m_matrix.setToIdentity();
-    m_matrix.translate(0.0f, 0.0f, -3.0f);
 }
 
 void GlWidget::paintGL() {
@@ -114,7 +108,11 @@ void GlWidget::paintGL() {
     m_f->glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     m_f->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-    m_matrix.rotate(m_rotation);
+    m_matrix.setToIdentity();
+    m_matrix.translate(0.0f, 0.0f, -3.0f);
+    m_matrix.rotate(180.0f - (m_vRotAngle[0] / 16.0f), 1, 0, 0);
+    m_matrix.rotate(m_vRotAngle[1] / 16.0f, 0, 1, 0);
+    m_matrix.rotate(m_vRotAngle[2] / 16.0f, 0, 0, 1);
 
     // draw
     m_vao->bind();
@@ -136,3 +134,41 @@ void GlWidget::resizeGL(int w, int h) {
     m_projection.setToIdentity();
     m_projection.perspective(fov, aspect, zNear, zFar);
 };
+
+void GlWidget::mousePressEvent(QMouseEvent *e) {
+    QOpenGLWidget::mousePressEvent(e);
+
+    mousePressPosition = QVector2D(e->localPos());
+}
+void GlWidget::mouseMoveEvent(QMouseEvent *e) {
+    QOpenGLWidget::mouseMoveEvent(e);
+
+    int dx = e->x() - mousePressPosition.x();
+    int dy = e->y() - mousePressPosition.y();
+    if (e->buttons() & Qt::LeftButton) {
+        setRotation(m_vRotAngle[0] + 8 * dy, 0);
+        setRotation(m_vRotAngle[1] + 8 * dx, 1);
+    } else if (e->buttons() & Qt::RightButton) {
+        setRotation(m_vRotAngle[0] + 8 * dy, 0);
+        setRotation(m_vRotAngle[2] + 8 * dx, 2);
+    }
+    mousePressPosition = QVector2D(e->localPos());
+    update();
+}
+
+static void qNormalizeAngle(int &angle)
+{
+    while (angle < 0)
+        angle += 360 * 16;
+    while (angle > 360 * 16)
+        angle -= 360 * 16;
+}
+
+void GlWidget::setRotation(int angle, int axis)
+{
+    qNormalizeAngle(angle);
+    if (angle != m_vRotAngle[axis]) {
+        m_vRotAngle[axis] = angle;
+        update();
+    }
+}

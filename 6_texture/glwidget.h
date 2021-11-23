@@ -9,6 +9,7 @@
 #include <QMatrix4x4>
 #include <QTimer>
 #include <QQuaternion>
+#include <QMouseEvent>
 
 class GlWidget : public QOpenGLWidget
 {
@@ -18,13 +19,17 @@ public:
     ~GlWidget();
 
 protected:
-    void initializeGL();
-    void paintGL();
-    void resizeGL(int w, int h);
+    void initializeGL() override;
+    void paintGL() override;
+    void resizeGL(int w, int h) override;
 
+    void mousePressEvent(QMouseEvent *e) override;
+    void mouseMoveEvent(QMouseEvent *e) override;
 private:
     void initShader();
     void initObject();
+    // use mouse to rotate
+    void setRotation(int angle, int axis);
 
     // in location in shader
     struct {
@@ -45,7 +50,7 @@ private:
     // using both vertex buffer and index buffer
     QOpenGLBuffer *m_vbo, *m_ibo;
 
-    QVector3D m_vRotationAxis = QVector3D(1.f, 1.f, 1.f);
+    QVector3D m_vRotAngle;
     // project matrix
     QMatrix4x4 m_projection, m_matrix;
     qreal m_rRotateSpeed = 1.f;
@@ -54,6 +59,9 @@ private:
     QTimer timer;
 
     int nIndexCount = 0, nVertexCount = 0;
+
+    // mouse position in screen
+    QVector2D mousePressPosition;
 };
 
 #endif // GLWIDGET_H
