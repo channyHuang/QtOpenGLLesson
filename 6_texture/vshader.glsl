@@ -1,13 +1,14 @@
 #version 430 core
 
 in vec3 posVertex;
-in vec3 colVertex;
-out vec4 col;
+in vec2 posTexture;
 uniform mat4 mvp_matrix;
+
+varying vec2 v_texcoord;
 
 void main(void)
 {
     gl_Position = mvp_matrix * vec4(posVertex * 0.5f, 1.0f);
-    col = vec4(colVertex, 1.f);
+    v_texcoord = posTexture;
 }
 

@@ -10,6 +10,7 @@
 #include <QTimer>
 #include <QQuaternion>
 #include <QMouseEvent>
+#include <QOpenGLTexture>
 
 class GlWidget : public QOpenGLWidget
 {
@@ -30,17 +31,18 @@ private:
     void initObject();
     // use mouse to rotate
     void setRotation(int angle, int axis);
+    void initTexture();
 
     // in location in shader
     struct {
         GLuint posVertex;
-        GLuint colVertex;
+        GLuint posTexture;
         GLuint mvpMatrixUniform;
     } stShaderLocation;
 
     struct VertexData {
         QVector3D position;
-        QVector3D col;
+        QVector2D texcoord;
     };
 
 private:
@@ -62,6 +64,8 @@ private:
 
     // mouse position in screen
     QVector2D mousePressPosition;
+    QString m_qsProPath;
+    QOpenGLTexture *m_texture;
 };
 
 #endif // GLWIDGET_H

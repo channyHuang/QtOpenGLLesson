@@ -11,6 +11,7 @@ GlWidget::GlWidget(QWidget *parent) : QOpenGLWidget(parent)
     connect(&timer, &QTimer::timeout, this, [&]{
 
     });
+    m_qsProPath = CONFIG2QSTR(PRO_PATH);
 }
 
 GlWidget::~GlWidget() {}
@@ -24,21 +25,21 @@ void GlWidget::initShader() {
 
     // get location number of attribute members in shader
     stShaderLocation.posVertex = m_shader->attributeLocation("posVertex");
-    stShaderLocation.colVertex = m_shader->attributeLocation("colVertex");
+    stShaderLocation.posTexture = m_shader->attributeLocation("posTexture");
     stShaderLocation.mvpMatrixUniform = m_shader->uniformLocation("mvp_matrix");
 }
 
 void GlWidget::initObject() {
     VertexData vertices[] = {
-        {QVector3D(-1.0f, -1.0f,  1.0f), QVector3D(1.f, 0.f, 1.f)},
-        {QVector3D(1.0f, -1.0f,  1.0f), QVector3D(1.f, 0.f, 1.f)},
-        {QVector3D(1.0f, -1.0f,  -1.0f), QVector3D(1.f, 0.f, 0.f)},
-        {QVector3D(-1.0f, -1.0f,  -1.0f), QVector3D(1.f, 0.f, 0.f)},
+        {QVector3D(-1.0f, -1.0f,  1.0f), QVector2D(0.5f, 0.5f)},
+        {QVector3D(1.0f, -1.0f,  1.0f), QVector2D(0.5f, 0.5f)},
+        {QVector3D(1.0f, -1.0f,  -1.0f), QVector2D(0.5f, 0.5f)},
+        {QVector3D(-1.0f, -1.0f,  -1.0f), QVector2D(0.5f, 0.5f)},
 
-        {QVector3D(-1.0f, 1.0f,  1.0f), QVector3D(0.f, 1.f, 0.f)},
-        {QVector3D(1.0f, 1.0f, 1.0f), QVector3D(0.f, 0.f, 1.f)},
-        {QVector3D(1.0f, 1.0f, -1.0f), QVector3D(0.f, 0.f, 1.f)},
-        {QVector3D(-1.0f, 1.0f, -1.0f), QVector3D(0.f, 1.f, 0.f)}
+        {QVector3D(-1.0f, 1.0f,  1.0f), QVector2D(0.5f, 1.f)},
+        {QVector3D(1.0f, 1.0f, 1.0f), QVector2D(0.f, 0.5f)},
+        {QVector3D(1.0f, 1.0f, -1.0f), QVector2D(0.f, 0.5f)},
+        {QVector3D(-1.0f, 1.0f, -1.0f), QVector2D(0.f, 0.5f)}
     };
     GLushort indices[] = {
             0, 1, 3, 2, 2,     // Face bottom
@@ -64,6 +65,27 @@ void GlWidget::initObject() {
     m_vao->release();
 }
 
+void GlWidget::initTexture() {
+    m_vao->bind();
+    m_vbo->bind();
+    m_ibo->bind();
+    m_shader->bind();
+
+    m_texture = new QOpenGLTexture(QImage(m_qsProPath + "/image.jpg").mirrored());
+    m_texture->setMinificationFilter(QOpenGLTexture::Nearest);
+    m_texture->setMagnificationFilter(QOpenGLTexture::Linear);
+    m_texture->setWrapMode(QOpenGLTexture::Repeat);
+
+    m_texture->bind();
+    m_shader->setUniformValue("texture", 0);
+    m_texture->release();
+
+    m_shader->release();
+    m_ibo->release();
+    m_vbo->release();
+    m_vao->release();
+}
+
 void GlWidget::initializeGL() {
     m_vao = new QOpenGLVertexArrayObject;
     m_shader = new QOpenGLShaderProgram;
@@ -78,7 +100,7 @@ void GlWidget::initializeGL() {
 
     // load shader
     initShader();
-
+    initTexture();
     initObject();
 
     m_vao->bind();
@@ -88,10 +110,10 @@ void GlWidget::initializeGL() {
 
     // set buffer position
     m_shader->enableAttributeArray(stShaderLocation.posVertex);
-    m_shader->enableAttributeArray(stShaderLocation.colVertex);
+    m_shader->enableAttributeArray(stShaderLocation.posTexture);
 
     m_shader->setAttributeBuffer(stShaderLocation.posVertex, GL_FLOAT, offsetof(VertexData, position), 3, sizeof(VertexData));
-    m_shader->setAttributeBuffer(stShaderLocation.colVertex, GL_FLOAT, offsetof(VertexData, col), 3, sizeof(VertexData));
+    m_shader->setAttributeBuffer(stShaderLocation.posTexture, GL_FLOAT, offsetof(VertexData, texcoord), 2, sizeof(VertexData));
 
 
     m_shader->release();
@@ -119,9 +141,14 @@ void GlWidget::paintGL() {
     m_vbo->bind();
     m_ibo->bind();
     m_shader->bind();
+
+    m_texture->bind();
+    m_shader->setUniformValue("texture", 0);
+
     m_shader->setUniformValue(stShaderLocation.mvpMatrixUniform, m_projection * m_matrix);
     m_f->glDrawElements(GL_TRIANGLE_STRIP, nIndexCount, GL_UNSIGNED_SHORT, 0);
 
+    m_texture->release();
     m_shader->release();
     m_ibo->release();
     m_vbo->release();
