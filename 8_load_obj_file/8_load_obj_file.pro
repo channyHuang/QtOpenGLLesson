@@ -8,6 +8,12 @@ CONFIG += c++11
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
+DEFINES += PRO_PATH=$${PWD}
+
+include($$PWD/../common/common.pri)
+
+INCLUDEPATH += $$PWD/../common
+
 SOURCE_FILES = $$files($$PWD/*.cpp, false)
 HEADER_FILES = $$files($$PWD/*.h, false)
 RESOURCE_FILES = $$files($$PWD/*.qrc, false)
@@ -17,8 +23,6 @@ SOURCES += $${SOURCE_FILES}
 HEADERS += $${HEADER_FILES}
 
 RESOURCES += $${RESOURCE_FILES}
-
-DEFINES += PRO_PATH=$${PWD}
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
