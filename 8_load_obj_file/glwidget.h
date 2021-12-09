@@ -12,6 +12,8 @@
 #include <QMouseEvent>
 #include <QOpenGLTexture>
 
+#include "objfileloader.h"
+
 class GlWidget : public QOpenGLWidget
 {
     Q_OBJECT
@@ -57,20 +59,21 @@ private:
     // using both vertex buffer and index buffer
     QOpenGLBuffer *m_vbo, *m_ibo;
 
-    QVector3D m_vRotAngle;
+    QVector3D m_vRotAngle = QVector3D(0, 0, 0);
     // project matrix
     QMatrix4x4 m_projection, m_matrix;
-    qreal m_rRotateSpeed = 1.f;
-    // use quaternion is better than vertex or matrix in rotation
-    QQuaternion m_rotation;
     QTimer timer;
 
     int nIndexCount = 0, nVertexCount = 0;
 
     // mouse position in screen
-    QVector2D mousePressPosition;
+    QVector2D mousePressPosition = QVector2D(0, 0);
     QString m_qsProPath;
     QOpenGLTexture *m_texture;
+
+    // model file loader
+    ObjFileLoader m_fileLoader;
+    FileObject m_dataObject;
 };
 
 #endif // GLWIDGET_H

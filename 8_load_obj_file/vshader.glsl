@@ -15,7 +15,7 @@ void main(void)
 {
     vert = posVertex;
     vertNormal = normal_matrix * norVertex;
-    gl_Position = proj_matrix * mv_matrix * vec4(posVertex * 0.5f, 1.0f);
+    gl_Position = proj_matrix * mv_matrix * vec4(posVertex, 1.0f);
     v_texcoord = posTexture;
 }
 

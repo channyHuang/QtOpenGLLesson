@@ -6,12 +6,9 @@
 
 GlWidget::GlWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
-    // rotate every second
-    timer.setInterval(1000);
-    connect(&timer, &QTimer::timeout, this, [&]{
-
-    });
     m_qsProPath = CONFIG2QSTR(PRO_PATH);
+    m_projection.setToIdentity();
+    m_matrix.setToIdentity();
 }
 
 GlWidget::~GlWidget() {}
@@ -33,36 +30,21 @@ void GlWidget::initShader() {
 }
 
 void GlWidget::initObject() {
-    VertexData vertices[] = {
-        {QVector3D(-1.0f, -1.0f,  1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.5f, 0.5f)},
-        {QVector3D(1.0f, -1.0f,  1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.5f, 0.5f)},
-        {QVector3D(1.0f, -1.0f,  -1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.5f, 0.5f)},
-        {QVector3D(-1.0f, -1.0f,  -1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.5f, 0.5f)},
-
-        {QVector3D(-1.0f, 1.0f,  1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.5f, 1.f)},
-        {QVector3D(1.0f, 1.0f, 1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.f, 0.5f)},
-        {QVector3D(1.0f, 1.0f, -1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.f, 0.5f)},
-        {QVector3D(-1.0f, 1.0f, -1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.f, 0.5f)}
-    };
-    GLushort indices[] = {
-            0, 1, 3, 2, 2,     // Face bottom
-            2, 2, 6, 3, 7, 7,  // Face front
-            3, 3, 7, 0, 4, 4,  // Face left
-            4, 4, 5, 7, 6, 6,     // Face up
-            0, 0, 1, 4, 5, 5, // Face back
-            1, 1, 2, 5, 6, 6 // Face right
-        };
-    nIndexCount = 34;
-    nVertexCount = 8;
+    if (!m_fileLoader.loadObjFile((m_qsProPath + "/../resources/box.obj").toStdString())) {
+        qDebug() << "load obj failed";
+    }
+    m_dataObject = m_fileLoader.getDataStruct();
+    nIndexCount = m_fileLoader.getFaceCount();
+    nVertexCount = m_fileLoader.getVertexCount();
 
     m_vao->bind();
 
     m_vbo->bind();
-    m_vbo->allocate(vertices, sizeof(VertexData) * nVertexCount);
+    m_vbo->allocate(m_dataObject.vertex.data(), sizeof(Vertex) * nVertexCount);
     m_vbo->release();
 
     m_ibo->bind();
-    m_ibo->allocate(indices, sizeof(GLushort) * nIndexCount);
+    m_ibo->allocate(m_dataObject.faces.data(), sizeof(Vector3i) * nIndexCount);
     m_ibo->release();
 
     m_vao->release();
@@ -117,9 +99,9 @@ void GlWidget::initializeGL() {
     m_shader->enableAttributeArray(stShaderLocation.posTexture);
     m_shader->enableAttributeArray(stShaderLocation.norVertex);
 
-    m_shader->setAttributeBuffer(stShaderLocation.posVertex, GL_FLOAT, offsetof(VertexData, position), 3, sizeof(VertexData));
-    m_shader->setAttributeBuffer(stShaderLocation.posTexture, GL_FLOAT, offsetof(VertexData, texcoord), 2, sizeof(VertexData));
-    m_shader->setAttributeBuffer(stShaderLocation.norVertex, GL_FLOAT, offsetof(VertexData, normal), 3, sizeof(VertexData));
+    m_shader->setAttributeBuffer(stShaderLocation.posVertex, GL_FLOAT, offsetof(Vertex, position), 3, sizeof(VertexData));
+    m_shader->setAttributeBuffer(stShaderLocation.posTexture, GL_FLOAT, offsetof(Vertex, texcoord), 2, sizeof(VertexData));
+    m_shader->setAttributeBuffer(stShaderLocation.norVertex, GL_FLOAT, offsetof(Vertex, normal), 3, sizeof(VertexData));
 
     m_shader->release();
     m_ibo->release();
@@ -128,6 +110,7 @@ void GlWidget::initializeGL() {
 
     m_f->glEnable(GL_DEPTH_TEST);
     m_f->glEnable(GL_CULL_FACE);
+    m_f->glFrontFace(GL_CCW);
 }
 
 void GlWidget::paintGL() {
@@ -136,7 +119,7 @@ void GlWidget::paintGL() {
     m_f->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     m_matrix.setToIdentity();
-    m_matrix.translate(0.0f, 0.0f, -3.0f);
+    m_matrix.translate(0.0f, 0.0f, -5.0f);
     m_matrix.rotate(180.0f - (m_vRotAngle[0] / 16.0f), 1, 0, 0);
     m_matrix.rotate(m_vRotAngle[1] / 16.0f, 0, 1, 0);
     m_matrix.rotate(m_vRotAngle[2] / 16.0f, 0, 0, 1);
@@ -152,12 +135,12 @@ void GlWidget::paintGL() {
 
     m_shader->setUniformValue(stShaderLocation.mvMatrixUniform, m_matrix);
     m_shader->setUniformValue(stShaderLocation.projMatrixUniform, m_projection);
-    m_shader->setUniformValue(stShaderLocation.lightPos, QVector3D(0, 0, 70));
+    m_shader->setUniformValue(stShaderLocation.lightPos, QVector3D(0, 0, 7));
 
     QMatrix3x3 normalMatrix = m_matrix.normalMatrix();
     m_shader->setUniformValue(stShaderLocation.normalMatrixUniform, normalMatrix);
 
-    m_f->glDrawElements(GL_TRIANGLE_STRIP, nIndexCount, GL_UNSIGNED_SHORT, 0);
+    m_f->glDrawElements(GL_TRIANGLES, nIndexCount * 3, GL_UNSIGNED_INT, 0);
 
     m_texture->release();
     m_shader->release();
@@ -168,7 +151,7 @@ void GlWidget::paintGL() {
 
 void GlWidget::resizeGL(int w, int h) {
     qreal aspect = qreal(w) / qreal(h ? h : 1);
-    const qreal zNear = 2.f, zFar = 15.0f, fov = 60.0f;
+    const qreal zNear = 3.f, zFar = 10.0f, fov = 45.0f;
     m_projection.setToIdentity();
     m_projection.perspective(fov, aspect, zNear, zFar);
 };
