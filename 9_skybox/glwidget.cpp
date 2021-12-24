@@ -28,14 +28,16 @@ void GlWidget::initTexture() {
     m_vao->bind();
     m_shader->bind();
 
-    m_texture = new QOpenGLTexture(QImage(m_qsProPath + "/../resources/sky.jpg").mirrored());
-    m_texture->setMinificationFilter(QOpenGLTexture::Nearest);
-    m_texture->setMagnificationFilter(QOpenGLTexture::Linear);
-    m_texture->setWrapMode(QOpenGLTexture::Repeat);
+    for (int i = 0; i < 2; ++i ) {
+        m_texture[i] = new QOpenGLTexture(QImage(m_qsProPath + (i == 0 ? "/../resources/sky.jpg" : "/../resources/yellow.jpg")).mirrored());
+        m_texture[i]->setMinificationFilter(QOpenGLTexture::Nearest);
+        m_texture[i]->setMagnificationFilter(QOpenGLTexture::Linear);
+        m_texture[i]->setWrapMode(QOpenGLTexture::Repeat);
 
-    m_texture->bind();
-    m_shader->setUniformValue("tex", 0);
-    m_texture->release();
+        m_texture[i]->bind();
+        m_shader->setUniformValue("tex", 0);
+        m_texture[i]->release();
+    }
 
     m_shader->release();
     m_vao->release();
@@ -84,13 +86,26 @@ void GlWidget::paintGL() {
         m_matrix.rotate(90.0f * (float)i, 0, 0, 1);
         m_matrix.translate(-0.5f, 0.f, -10.f);
         m_matrix.rotate(90.f, 0, 1, 0);
-        m_matrix.scale(30.f, 1.f, 1.f);
+        m_matrix.scale(30.f, 1.f, 30.f);
 
-        m_texture->bind();
+        m_texture[0]->bind();
         m_shader->setUniformValue(stShaderLocation.mvp, m_projection * m_matrix);
 
 		mfunOpenglVer->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-		m_texture->release();
+        m_texture[0]->release();
+    }
+
+    for (int i = 0; i < 2; ++i) {
+        QMatrix4x4 m_matrix;
+        m_matrix.rotate(180.0f * (float)i, 0, 1, 0);
+        m_matrix.translate(-0.5f, 0.f, -10.f);
+        m_matrix.scale(30.f, 1.f, 1.f);
+
+        m_texture[1]->bind();
+        m_shader->setUniformValue(stShaderLocation.mvp, m_projection * m_matrix);
+
+        mfunOpenglVer->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        m_texture[1]->release();
     }
 
     m_shader->release();

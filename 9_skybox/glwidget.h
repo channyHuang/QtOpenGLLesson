@@ -59,7 +59,7 @@ private:
     // mouse position in screen
     QVector2D mousePressPosition = QVector2D(0, 0);
     QString m_qsProPath;
-    QOpenGLTexture *m_texture;
+    QOpenGLTexture *m_texture[2];
 
     // model file loader
     ObjFileLoader m_fileLoader;
