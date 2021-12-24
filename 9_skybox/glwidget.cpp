@@ -7,8 +7,6 @@
 GlWidget::GlWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
     m_qsProPath = CONFIG2QSTR(PRO_PATH);
-    m_projection.setToIdentity();
-    m_matrix.setToIdentity();
 }
 
 GlWidget::~GlWidget() {}
@@ -21,137 +19,87 @@ void GlWidget::initShader() {
     }
 
     // get location number of attribute members in shader
-    stShaderLocation.posVertex = m_shader->attributeLocation("posVertex");
-    stShaderLocation.posTexture = m_shader->attributeLocation("posTexture");
-    stShaderLocation.mvMatrixUniform = m_shader->uniformLocation("mv_matrix");
-    stShaderLocation.projMatrixUniform = m_shader->uniformLocation("proj_matrix");
-    stShaderLocation.lightPos = m_shader->uniformLocation("lightPos");
-    stShaderLocation.normalMatrixUniform = m_shader->uniformLocation("normalMatrixUniform");
-}
-
-void GlWidget::initObject() {
-    if (!m_fileLoader.loadObjFile((m_qsProPath + "/../resources/box.obj").toStdString())) {
-        qDebug() << "load obj failed";
-    }
-    m_dataObject = m_fileLoader.getDataStruct();
-    nIndexCount = m_fileLoader.getFaceCount();
-    nVertexCount = m_fileLoader.getVertexCount();
-
-    m_vao->bind();
-
-    m_vbo->bind();
-    m_vbo->allocate(m_dataObject.vertex.data(), sizeof(Vertex) * nVertexCount);
-    m_vbo->release();
-
-    m_ibo->bind();
-    m_ibo->allocate(m_dataObject.faces.data(), sizeof(Vector3i) * nIndexCount);
-    m_ibo->release();
-
-    m_vao->release();
+    stShaderLocation.offset = m_shader->uniformLocation("offset");
+    stShaderLocation.mvp = m_shader->uniformLocation("mvp");
+    stShaderLocation.tex = m_shader->uniformLocation("tex");
 }
 
 void GlWidget::initTexture() {
     m_vao->bind();
-    m_vbo->bind();
-    m_ibo->bind();
     m_shader->bind();
 
-    m_texture = new QOpenGLTexture(QImage(m_qsProPath + "/image.jpg").mirrored());
+    m_texture = new QOpenGLTexture(QImage(m_qsProPath + "/../resources/sky.jpg").mirrored());
     m_texture->setMinificationFilter(QOpenGLTexture::Nearest);
     m_texture->setMagnificationFilter(QOpenGLTexture::Linear);
     m_texture->setWrapMode(QOpenGLTexture::Repeat);
 
     m_texture->bind();
-    m_shader->setUniformValue("texture", 0);
+    m_shader->setUniformValue("tex", 0);
     m_texture->release();
 
     m_shader->release();
-    m_ibo->release();
-    m_vbo->release();
     m_vao->release();
 }
 
 void GlWidget::initializeGL() {
     m_vao = new QOpenGLVertexArrayObject;
     m_shader = new QOpenGLShaderProgram;
-    m_f = this->context()->functions();
-    m_vbo = new QOpenGLBuffer(QOpenGLBuffer::Type::VertexBuffer);
-    m_ibo = new QOpenGLBuffer(QOpenGLBuffer::Type::IndexBuffer);
+    //mfunOpenglVer = this->context()->functions();
+    mfunOpenglVer = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_4_2_Core>(this->context());
+    mfunOpenglVer->initializeOpenGLFunctions();
 
     m_vao->create();
     m_shader->create();
-    m_vbo->create();
-    m_ibo->create();
 
     // load shader
     initShader();
     initTexture();
-    initObject();
 
     m_vao->bind();
-    m_vbo->bind();
-    m_ibo->bind();
     m_shader->bind();
 
-    m_shader->setUniformValue("texture", 0);
-    // set buffer position
-    m_shader->enableAttributeArray(stShaderLocation.posVertex);
-    m_shader->enableAttributeArray(stShaderLocation.posTexture);
-    m_shader->enableAttributeArray(stShaderLocation.norVertex);
-
-    m_shader->setAttributeBuffer(stShaderLocation.posVertex, GL_FLOAT, offsetof(Vertex, position), 3, sizeof(VertexData));
-    m_shader->setAttributeBuffer(stShaderLocation.posTexture, GL_FLOAT, offsetof(Vertex, texcoord), 2, sizeof(VertexData));
-    m_shader->setAttributeBuffer(stShaderLocation.norVertex, GL_FLOAT, offsetof(Vertex, normal), 3, sizeof(VertexData));
+    m_shader->setUniformValue("tex", 0);
 
     m_shader->release();
-    m_ibo->release();
-    m_vbo->release();
     m_vao->release();
 
-    m_f->glEnable(GL_DEPTH_TEST);
-    m_f->glEnable(GL_CULL_FACE);
-    m_f->glFrontFace(GL_CCW);
+    mfunOpenglVer->glEnable(GL_DEPTH_TEST);
+    mfunOpenglVer->glEnable(GL_CULL_FACE);
+    mfunOpenglVer->glFrontFace(GL_CCW);
 }
 
 void GlWidget::paintGL() {
-    // set background color
-    m_f->glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-    m_f->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-    m_matrix.setToIdentity();
-    m_matrix.translate(0.0f, 0.0f, -5.0f);
-    m_matrix.rotate(180.0f - (m_vRotAngle[0] / 16.0f), 1, 0, 0);
-    m_matrix.rotate(m_vRotAngle[1] / 16.0f, 0, 1, 0);
-    m_matrix.rotate(m_vRotAngle[2] / 16.0f, 0, 0, 1);
-
-    // draw
-    m_vao->bind();
-    m_vbo->bind();
-    m_ibo->bind();
     m_shader->bind();
+    m_vao->bind();
 
-    m_texture->bind();
-    m_shader->setUniformValue("texture", 0);
+    static const GLfloat black[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    // set background color
+    mfunOpenglVer->glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    mfunOpenglVer->glClearColor(black[0], black[1], black[2], black[3]);
 
-    m_shader->setUniformValue(stShaderLocation.mvMatrixUniform, m_matrix);
-    m_shader->setUniformValue(stShaderLocation.projMatrixUniform, m_projection);
-    m_shader->setUniformValue(stShaderLocation.lightPos, QVector3D(0, 0, 7));
+    m_shader->setUniformValue(stShaderLocation.offset, 0);
 
-    QMatrix3x3 normalMatrix = m_matrix.normalMatrix();
-    m_shader->setUniformValue(stShaderLocation.normalMatrixUniform, normalMatrix);
+    for (int i = 0; i < 4; ++i) {
+        QMatrix4x4 m_matrix;
+        m_matrix.rotate(90.0f * (float)i, 0, 0, 1);
+        m_matrix.translate(-0.5f, 0.f, -10.f);
+        m_matrix.rotate(90.f, 0, 1, 0);
+        m_matrix.scale(30.f, 1.f, 1.f);
 
-    m_f->glDrawElements(GL_TRIANGLES, nIndexCount * 3, GL_UNSIGNED_INT, 0);
+        m_texture->bind();
+        m_shader->setUniformValue(stShaderLocation.mvp, m_projection * m_matrix);
 
-    m_texture->release();
+		mfunOpenglVer->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		m_texture->release();
+    }
+
     m_shader->release();
-    m_ibo->release();
-    m_vbo->release();
     m_vao->release();
 }
 
 void GlWidget::resizeGL(int w, int h) {
     qreal aspect = qreal(w) / qreal(h ? h : 1);
-    const qreal zNear = 3.f, zFar = 10.0f, fov = 45.0f;
+    const qreal zNear = 0.1f, zFar = 100.0f, fov = 60.0f;
     m_projection.setToIdentity();
     m_projection.perspective(fov, aspect, zNear, zFar);
 };

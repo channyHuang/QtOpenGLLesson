@@ -11,6 +11,8 @@
 #include <QQuaternion>
 #include <QMouseEvent>
 #include <QOpenGLTexture>
+#include <QOpenGLFunctions_4_2_Core>
+#include <QOpenGLVersionFunctionsFactory>
 
 #include "objfileloader.h"
 
@@ -30,38 +32,26 @@ protected:
     void mouseMoveEvent(QMouseEvent *e) override;
 private:
     void initShader();
-    void initObject();
     // use mouse to rotate
     void setRotation(int angle, int axis);
     void initTexture();
 
     // in location in shader
     struct {
-        GLuint posVertex;
-        GLuint norVertex;
-        GLuint posTexture;
-        GLuint mvMatrixUniform;
-        GLuint projMatrixUniform;
-        GLuint lightPos;
-        GLuint normalMatrixUniform;
+        GLuint mvp;
+        GLuint offset;
+        GLuint tex;
     } stShaderLocation;
-
-    struct VertexData {
-        QVector3D position;
-        QVector3D normal;
-        QVector2D texcoord;
-    };
 
 private:
     QOpenGLVertexArrayObject *m_vao;
     QOpenGLShaderProgram *m_shader;
-    QOpenGLFunctions *m_f;
-    // using both vertex buffer and index buffer
-    QOpenGLBuffer *m_vbo, *m_ibo;
+    QOpenGLFunctions *mfunOpengl = nullptr;
+    QOpenGLFunctions_4_2_Core *mfunOpenglVer = nullptr;
 
     QVector3D m_vRotAngle = QVector3D(0, 0, 0);
     // project matrix
-    QMatrix4x4 m_projection, m_matrix;
+    QMatrix4x4 m_projection;
     QTimer timer;
 
     int nIndexCount = 0, nVertexCount = 0;
