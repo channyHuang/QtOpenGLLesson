@@ -39,10 +39,10 @@ void GlWidget::initObject() {
         {QVector3D(1.0f, -1.0f,  -1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.5f, 0.5f)},
         {QVector3D(-1.0f, -1.0f,  -1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.5f, 0.5f)},
 
-        {QVector3D(-1.0f, 1.0f,  1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.5f, 1.f)},
-        {QVector3D(1.0f, 1.0f, 1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.f, 0.5f)},
-        {QVector3D(1.0f, 1.0f, -1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.f, 0.5f)},
-        {QVector3D(-1.0f, 1.0f, -1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.f, 0.5f)}
+        {QVector3D(-1.0f, 1.0f,  1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.5f, 0.5f)},
+        {QVector3D(1.0f, 1.0f, 1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.5f, 0.5f)},
+        {QVector3D(1.0f, 1.0f, -1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.5f, 0.5f)},
+        {QVector3D(-1.0f, 1.0f, -1.0f), QVector3D(1.0f, 0.0f,  0.0f), QVector2D(0.5f, 0.5f)}
     };
     GLushort indices[] = {
             0, 1, 3, 2, 2,     // Face bottom
@@ -118,8 +118,8 @@ void GlWidget::initializeGL() {
     m_shader->enableAttributeArray(stShaderLocation.norVertex);
 
     m_shader->setAttributeBuffer(stShaderLocation.posVertex, GL_FLOAT, offsetof(VertexData, position), 3, sizeof(VertexData));
-    m_shader->setAttributeBuffer(stShaderLocation.posTexture, GL_FLOAT, offsetof(VertexData, texcoord), 2, sizeof(VertexData));
     m_shader->setAttributeBuffer(stShaderLocation.norVertex, GL_FLOAT, offsetof(VertexData, normal), 3, sizeof(VertexData));
+    m_shader->setAttributeBuffer(stShaderLocation.posTexture, GL_FLOAT, offsetof(VertexData, texcoord), 2, sizeof(VertexData));
 
     m_shader->release();
     m_ibo->release();

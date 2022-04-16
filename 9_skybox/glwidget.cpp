@@ -113,8 +113,8 @@ void GlWidget::paintGL() {
 }
 
 void GlWidget::resizeGL(int w, int h) {
-    qreal aspect = qreal(w) / qreal(h ? h : 1);
-    const qreal zNear = 0.1f, zFar = 100.0f, fov = 60.0f;
+    aspect = qreal(w) / qreal(h ? h : 1);
+
     m_projection.setToIdentity();
     m_projection.perspective(fov, aspect, zNear, zFar);
 };

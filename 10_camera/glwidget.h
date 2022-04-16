@@ -10,6 +10,7 @@
 #include <QTimer>
 #include <QQuaternion>
 #include <QMouseEvent>
+#include <QKeyEvent>
 #include <QOpenGLTexture>
 #include <QOpenGLFunctions_4_2_Core>
 #include <QOpenGLVersionFunctionsFactory>
@@ -30,6 +31,9 @@ protected:
 
     void mousePressEvent(QMouseEvent *e) override;
     void mouseMoveEvent(QMouseEvent *e) override;
+
+    virtual void keyPressEvent(QKeyEvent *e) override;
+    virtual void keyReleaseEvent(QKeyEvent *e) override;
 private:
     void initShader();
     // use mouse to rotate
@@ -51,7 +55,8 @@ private:
 
     QVector3D m_vRotAngle = QVector3D(0, 0, 0);
     // project matrix
-    QMatrix4x4 m_projection;
+    QMatrix4x4 m_projection, m_matCamera;
+    QVector3D m_vViewPos, m_vTargetPos, m_vUpDir;
     QTimer timer;
 
     int nIndexCount = 0, nVertexCount = 0;
@@ -59,7 +64,7 @@ private:
     // mouse position in screen
     QVector2D mousePressPosition = QVector2D(0, 0);
     QString m_qsProPath;
-    QOpenGLTexture *m_texture[2];
+    QOpenGLTexture *m_texture[4];
 
     // model file loader
     ObjFileLoader m_fileLoader;

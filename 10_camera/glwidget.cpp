@@ -6,7 +6,13 @@
 
 GlWidget::GlWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
+    setFocusPolicy(Qt::ClickFocus);
     m_qsProPath = CONFIG2QSTR(PRO_PATH);
+
+    m_vViewPos = QVector3D(0.0f, 0.0f, 1.5f);
+    m_vTargetPos = QVector3D(0.0f, 0.0f, 0.0f);
+    m_vUpDir = QVector3D(0.0f, 1.0f, 0.0f);
+    m_matCamera.lookAt(m_vViewPos, m_vTargetPos, m_vUpDir);
 }
 
 GlWidget::~GlWidget() {}
@@ -24,12 +30,28 @@ void GlWidget::initShader() {
     stShaderLocation.tex = m_shader->uniformLocation("tex");
 }
 
+QString getImagePath(int index) {
+    QString root = "/../resources/";
+    switch(index) {
+    case 0:
+        return root + "yellow.jpg";
+    case 1:
+        return root + "leaves.jpg";
+    case 2:
+        return root + "food.jpg";
+    case 3:
+        return root + "sky.jpg";
+    default:
+        return "";
+    }
+}
+
 void GlWidget::initTexture() {
     m_vao->bind();
     m_shader->bind();
 
-    for (int i = 0; i < 2; ++i ) {
-        m_texture[i] = new QOpenGLTexture(QImage(m_qsProPath + (i == 0 ? "/../resources/sky.jpg" : "/../resources/yellow.jpg")).mirrored());
+    for (int i = 0; i < 4; ++i ) {
+        m_texture[i] = new QOpenGLTexture(QImage(m_qsProPath + getImagePath(i)).mirrored());
         m_texture[i]->setMinificationFilter(QOpenGLTexture::Nearest);
         m_texture[i]->setMagnificationFilter(QOpenGLTexture::Linear);
         m_texture[i]->setWrapMode(QOpenGLTexture::Repeat);
@@ -83,16 +105,17 @@ void GlWidget::paintGL() {
 
     for (int i = 0; i < 4; ++i) {
         QMatrix4x4 m_matrix;
+        m_matrix.setToIdentity();
         m_matrix.rotate(90.0f * (float)i, 0, 0, 1);
         m_matrix.translate(-0.5f, 0.f, -10.f);
         m_matrix.rotate(90.f, 0, 1, 0);
         m_matrix.scale(30.f, 1.f, 30.f);
 
-        m_texture[0]->bind();
-        m_shader->setUniformValue(stShaderLocation.mvp, m_projection * m_matrix);
+        m_texture[i]->bind();
+        m_shader->setUniformValue(stShaderLocation.mvp, m_matCamera * m_projection * m_matrix);
 
 		mfunOpenglVer->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-        m_texture[0]->release();
+        m_texture[i]->release();
     }
 
     for (int i = 0; i < 2; ++i) {
@@ -102,7 +125,7 @@ void GlWidget::paintGL() {
         m_matrix.scale(30.f, 1.f, 1.f);
 
         m_texture[1]->bind();
-        m_shader->setUniformValue(stShaderLocation.mvp, m_projection * m_matrix);
+        m_shader->setUniformValue(stShaderLocation.mvp, m_matCamera * m_projection * m_matrix);
 
         mfunOpenglVer->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         m_texture[1]->release();
@@ -138,6 +161,46 @@ void GlWidget::mouseMoveEvent(QMouseEvent *e) {
     }
     mousePressPosition = QVector2D(e->localPos());
     update();
+}
+
+void GlWidget::keyPressEvent(QKeyEvent *e) {
+    QOpenGLWidget::keyPressEvent(e);
+    QVector3D vdir = (m_vViewPos - m_vTargetPos);
+    vdir.normalize();
+    switch(e->key()) {
+    case Qt::Key_W:
+        m_vTargetPos += vdir * 0.01f;
+        m_vViewPos += vdir * 0.01f;
+        break;
+    case Qt::Key_S:
+        m_vTargetPos -= vdir * 0.01f;
+        m_vViewPos -= vdir * 0.01f;
+        break;
+    case Qt::Key_A:
+        vdir = QVector3D(vdir.z(), vdir.y(), vdir.x());
+        m_vTargetPos += vdir;
+        m_vViewPos += vdir;
+        break;
+    case Qt::Key_D:
+        m_vTargetPos += vdir;
+        m_vViewPos += vdir;
+        break;
+    case Qt::Key_Q:
+        m_vTargetPos += m_vUpDir;
+        m_vViewPos += m_vUpDir;
+        break;
+    case Qt::Key_E:
+        m_vTargetPos -= m_vUpDir;
+        m_vViewPos -= m_vUpDir;
+        break;
+    default:
+        break;
+    }
+    m_matCamera.lookAt(m_vViewPos, m_vTargetPos, m_vUpDir);
+    update();
+}
+
+void GlWidget::keyReleaseEvent(QKeyEvent *e) {
 }
 
 static void qNormalizeAngle(int &angle)

@@ -64,6 +64,9 @@ private:
     // model file loader
     ObjFileLoader m_fileLoader;
     FileObject m_dataObject;
+
+    qreal zNear = 0.1f, zFar = 100.0f, fov = 60.0f;
+    qreal aspect;
 };
 
 #endif // GLWIDGET_H
