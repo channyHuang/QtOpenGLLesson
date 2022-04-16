@@ -15,7 +15,7 @@ void GlWidget::initShader() {
     }
 }
 
-static const GLfloat VERTEX_DATA[] = {
+static const GLfloat TRIANGLE_DATA[] = {
     -0.5f, -0.5f, 0.0f,
     0.5f, -0.5f, 0.0f,
     -0.5f, 0.5f, 0.0f
@@ -36,7 +36,8 @@ void GlWidget::initializeGL() {
     initShader();
 
     m_vbo->bind();
-    m_vbo->allocate(VERTEX_DATA, 3*3* sizeof(GLfloat));
+    m_vbo->allocate(TRIANGLE_DATA, 3*3* sizeof(GLfloat));
+
     m_f->glEnableVertexAttribArray(0);
     m_f->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), 0);
 

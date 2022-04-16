@@ -16,6 +16,7 @@
 #include <QOpenGLVersionFunctionsFactory>
 
 #include "objfileloader.h"
+#include "camera.h"
 
 class GlWidget : public QOpenGLWidget
 {
@@ -69,6 +70,7 @@ private:
     // model file loader
     ObjFileLoader m_fileLoader;
     FileObject m_dataObject;
+    Camera camera;
 };
 
 #endif // GLWIDGET_H

@@ -8,11 +8,6 @@ GlWidget::GlWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
     setFocusPolicy(Qt::ClickFocus);
     m_qsProPath = CONFIG2QSTR(PRO_PATH);
-
-    m_vViewPos = QVector3D(0.0f, 0.0f, 1.5f);
-    m_vTargetPos = QVector3D(0.0f, 0.0f, 0.0f);
-    m_vUpDir = QVector3D(0.0f, 1.0f, 0.0f);
-    m_matCamera.lookAt(m_vViewPos, m_vTargetPos, m_vUpDir);
 }
 
 GlWidget::~GlWidget() {}
@@ -88,7 +83,7 @@ void GlWidget::initializeGL() {
     m_vao->release();
 
     mfunOpenglVer->glEnable(GL_DEPTH_TEST);
-    mfunOpenglVer->glEnable(GL_CULL_FACE);
+    //mfunOpenglVer->glEnable(GL_CULL_FACE);
     mfunOpenglVer->glFrontFace(GL_CCW);
 }
 
@@ -112,7 +107,7 @@ void GlWidget::paintGL() {
         m_matrix.scale(30.f, 1.f, 30.f);
 
         m_texture[i]->bind();
-        m_shader->setUniformValue(stShaderLocation.mvp, m_matCamera * m_projection * m_matrix);
+        m_shader->setUniformValue(stShaderLocation.mvp, m_projection * m_matCamera * m_matrix);
 
 		mfunOpenglVer->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         m_texture[i]->release();
@@ -125,7 +120,7 @@ void GlWidget::paintGL() {
         m_matrix.scale(30.f, 1.f, 1.f);
 
         m_texture[1]->bind();
-        m_shader->setUniformValue(stShaderLocation.mvp, m_matCamera * m_projection * m_matrix);
+        m_shader->setUniformValue(stShaderLocation.mvp, m_projection * m_matCamera * m_matrix);
 
         mfunOpenglVer->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         m_texture[1]->release();
@@ -165,38 +160,8 @@ void GlWidget::mouseMoveEvent(QMouseEvent *e) {
 
 void GlWidget::keyPressEvent(QKeyEvent *e) {
     QOpenGLWidget::keyPressEvent(e);
-    QVector3D vdir = (m_vViewPos - m_vTargetPos);
-    vdir.normalize();
-    switch(e->key()) {
-    case Qt::Key_W:
-        m_vTargetPos += vdir * 0.01f;
-        m_vViewPos += vdir * 0.01f;
-        break;
-    case Qt::Key_S:
-        m_vTargetPos -= vdir * 0.01f;
-        m_vViewPos -= vdir * 0.01f;
-        break;
-    case Qt::Key_A:
-        vdir = QVector3D(vdir.z(), vdir.y(), vdir.x());
-        m_vTargetPos += vdir;
-        m_vViewPos += vdir;
-        break;
-    case Qt::Key_D:
-        m_vTargetPos += vdir;
-        m_vViewPos += vdir;
-        break;
-    case Qt::Key_Q:
-        m_vTargetPos += m_vUpDir;
-        m_vViewPos += m_vUpDir;
-        break;
-    case Qt::Key_E:
-        m_vTargetPos -= m_vUpDir;
-        m_vViewPos -= m_vUpDir;
-        break;
-    default:
-        break;
-    }
-    m_matCamera.lookAt(m_vViewPos, m_vTargetPos, m_vUpDir);
+    camera.moveCamera(e);
+    m_matCamera = camera.getViewMatrix();
     update();
 }
 
