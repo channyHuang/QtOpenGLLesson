@@ -4,6 +4,8 @@
 #define CONFIG2STR(R) #R
 #define CONFIG2QSTR(R) CONFIG2STR(R)
 
+//#define USING_FIX_DATA
+
 GlWidget::GlWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
     m_qsProPath = CONFIG2QSTR(PRO_PATH);
@@ -23,6 +25,9 @@ void GlWidget::initShader() {
     // get location number of attribute members in shader
     stShaderLocation.posVertex = m_shader->attributeLocation("posVertex");
     stShaderLocation.posTexture = m_shader->attributeLocation("posTexture");
+    stShaderLocation.colVertex = m_shader->attributeLocation("colVertex");
+    stShaderLocation.norVertex = m_shader->attributeLocation("norVertex");
+
     stShaderLocation.mvMatrixUniform = m_shader->uniformLocation("mv_matrix");
     stShaderLocation.projMatrixUniform = m_shader->uniformLocation("proj_matrix");
     stShaderLocation.lightPos = m_shader->uniformLocation("lightPos");
@@ -50,13 +55,63 @@ void GlWidget::initObject() {
     m_vao->release();
 }
 
+void GlWidget::initObjectUsingSpecificData() {
+    Vertex vertices[] = {
+        {QVector3D(-0.045430, -0.045430, -0.750000), QVector3D(-0.061820, -0.061820, -2.597272), Common::getColor(), QVector2D(0.5, 0.5)},
+        {QVector3D(-0.045430, -0.750000, -0.045430), QVector3D(-0.061820, -2.597272, -0.061820), Common::getColor(), QVector2D(0.5, 0.5)},
+        {QVector3D(-0.750000, -0.045430, -0.045430), QVector3D(-2.597272, -0.061820, -0.061820), Common::getColor(), QVector2D(0.5, 0.5)},
+        {QVector3D(-0.045430, -0.045430, 0.749414), QVector3D(-0.052176, -0.052176, 2.243320), Common::getColor(), QVector2D(0.5, 0.5)},
+        {QVector3D(-0.045430, 0.749414, -0.045430), QVector3D(-0.052176, 2.243320, -0.052176), Common::getColor(), QVector2D(0.5, 0.5)},
+        {QVector3D(0.749414, -0.045430, -0.045430), QVector3D(2.243320, -0.052176, -0.052176), Common::getColor(), QVector2D(0.5, 0.5)},
+    };
+    nVertexCount = 6;
+#ifdef TRIANGLE_STRIP
+    GLushort indices[] = {
+            0, 1, 2, 2,     // Face bottom
+            3, 3, 2, 1, 1,  // Face front
+            4, 4, 0, 2, 2,  // Face left
+            4, 4, 2, 3, 3,     // Face up
+            0, 0, 5, 1, 1, // Face back
+            5, 5, 3, 1, 1, // Face right
+            4, 4, 5, 0, 0,
+            5, 5, 4, 3, 3
+    };
+    nIndexCount = 39;
+#else
+    GLushort indices[] = {
+        0, 1, 2,
+        3, 2, 1,
+        4, 0, 2,
+        4, 2, 3,
+        0, 5, 1,
+        5, 3, 1,
+        4, 5, 0,
+        5, 4, 3
+    };
+    nIndexCount = 24;
+#endif
+
+
+    m_vao->bind();
+
+    m_vbo->bind();
+    m_vbo->allocate(vertices, sizeof(Vertex) * nVertexCount);
+    m_vbo->release();
+
+    m_ibo->bind();
+    m_ibo->allocate(indices, sizeof(GLushort) * nIndexCount);
+    m_ibo->release();
+
+    m_vao->release();
+}
+
 void GlWidget::initTexture() {
     m_vao->bind();
     m_vbo->bind();
     m_ibo->bind();
     m_shader->bind();
 
-    m_texture = new QOpenGLTexture(QImage(m_qsProPath + "/image.jpg").mirrored());
+    m_texture = new QOpenGLTexture(QImage(m_qsProPath + "/../resources/food.jpg").mirrored());
     m_texture->setMinificationFilter(QOpenGLTexture::Nearest);
     m_texture->setMagnificationFilter(QOpenGLTexture::Linear);
     m_texture->setWrapMode(QOpenGLTexture::Repeat);
@@ -86,8 +141,11 @@ void GlWidget::initializeGL() {
     // load shader
     initShader();
     initTexture();
+#ifdef USING_FIX_DATA
+    initObjectUsingSpecificData();
+#else
     initObject();
-
+#endif
     m_vao->bind();
     m_vbo->bind();
     m_ibo->bind();
@@ -98,18 +156,25 @@ void GlWidget::initializeGL() {
     m_shader->enableAttributeArray(stShaderLocation.posVertex);
     m_shader->enableAttributeArray(stShaderLocation.posTexture);
     m_shader->enableAttributeArray(stShaderLocation.norVertex);
-
-    m_shader->setAttributeBuffer(stShaderLocation.posVertex, GL_FLOAT, offsetof(Vertex, position), 3, sizeof(VertexData));
-    m_shader->setAttributeBuffer(stShaderLocation.posTexture, GL_FLOAT, offsetof(Vertex, texcoord), 2, sizeof(VertexData));
-    m_shader->setAttributeBuffer(stShaderLocation.norVertex, GL_FLOAT, offsetof(Vertex, normal), 3, sizeof(VertexData));
-
+    m_shader->enableAttributeArray(stShaderLocation.colVertex);
+#ifndef USING_FIX_DATA
+    m_shader->setAttributeBuffer(stShaderLocation.posVertex, GL_FLOAT, offsetof(Vertex, vposition_), 3, sizeof(Vertex));
+    m_shader->setAttributeBuffer(stShaderLocation.posTexture, GL_FLOAT, offsetof(Vertex, vtexcoord_), 2, sizeof(Vertex));
+    m_shader->setAttributeBuffer(stShaderLocation.norVertex, GL_FLOAT, offsetof(Vertex, vnormal_), 3, sizeof(Vertex));
+    m_shader->setAttributeBuffer(stShaderLocation.colVertex, GL_FLOAT, offsetof(Vertex, vcol_), 3, sizeof(Vertex));
+#else
+    m_shader->setAttributeBuffer(stShaderLocation.posVertex, GL_FLOAT, offsetof(Vertex, vposition_), 3, sizeof(Vertex));
+    m_shader->setAttributeBuffer(stShaderLocation.colVertex, GL_FLOAT, offsetof(Vertex, vcol_), 3, sizeof(Vertex));
+    m_shader->setAttributeBuffer(stShaderLocation.norVertex, GL_FLOAT, offsetof(Vertex, vnormal_), 3, sizeof(Vertex));
+    m_shader->setAttributeBuffer(stShaderLocation.posTexture, GL_FLOAT, offsetof(Vertex, vtexcoord_), 2, sizeof(Vertex));
+#endif
     m_shader->release();
     m_ibo->release();
     m_vbo->release();
     m_vao->release();
 
     m_f->glEnable(GL_DEPTH_TEST);
-    m_f->glEnable(GL_CULL_FACE);
+    //m_f->glEnable(GL_CULL_FACE);
     m_f->glFrontFace(GL_CCW);
 }
 
@@ -119,10 +184,10 @@ void GlWidget::paintGL() {
     m_f->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     m_matrix.setToIdentity();
-    m_matrix.translate(0.0f, 0.0f, -5.0f);
-    m_matrix.rotate(180.0f - (m_vRotAngle[0] / 16.0f), 1, 0, 0);
-    m_matrix.rotate(m_vRotAngle[1] / 16.0f, 0, 1, 0);
-    m_matrix.rotate(m_vRotAngle[2] / 16.0f, 0, 0, 1);
+    //m_matrix.translate(0.0f, 0.0f, -20.0f);
+    //m_matrix.rotate(180.0f - (m_vRotAngle[0] / 16.0f), 1, 0, 0);
+    //m_matrix.rotate(m_vRotAngle[1] / 16.0f, 0, 1, 0);
+    //m_matrix.rotate(m_vRotAngle[2] / 16.0f, 0, 0, 1);
 
     // draw
     m_vao->bind();
@@ -134,13 +199,13 @@ void GlWidget::paintGL() {
     m_shader->setUniformValue("texture", 0);
 
     m_shader->setUniformValue(stShaderLocation.mvMatrixUniform, m_matrix);
-    m_shader->setUniformValue(stShaderLocation.projMatrixUniform, m_projection);
+    m_shader->setUniformValue(stShaderLocation.projMatrixUniform, m_projection);// * camera.getViewMatrix());
     m_shader->setUniformValue(stShaderLocation.lightPos, QVector3D(0, 0, 7));
 
     QMatrix3x3 normalMatrix = m_matrix.normalMatrix();
     m_shader->setUniformValue(stShaderLocation.normalMatrixUniform, normalMatrix);
 
-    m_f->glDrawElements(GL_TRIANGLES, nIndexCount * 3, GL_UNSIGNED_INT, 0);
+    m_f->glDrawElements(GL_TRIANGLES, nIndexCount * 3, GL_UNSIGNED_SHORT, 0);
 
     m_texture->release();
     m_shader->release();
@@ -151,7 +216,7 @@ void GlWidget::paintGL() {
 
 void GlWidget::resizeGL(int w, int h) {
     qreal aspect = qreal(w) / qreal(h ? h : 1);
-    const qreal zNear = 3.f, zFar = 10.0f, fov = 45.0f;
+    const qreal zNear = 1.f, zFar = 15.0f, fov = 60.0f;
     m_projection.setToIdentity();
     m_projection.perspective(fov, aspect, zNear, zFar);
 };
@@ -175,6 +240,11 @@ void GlWidget::mouseMoveEvent(QMouseEvent *e) {
     }
     mousePressPosition = QVector2D(e->localPos());
     update();
+}
+
+void GlWidget::keyPressEvent(QKeyEvent *e) {
+    QOpenGLWidget::keyPressEvent(e);
+    camera.moveCamera(e);
 }
 
 static void qNormalizeAngle(int &angle)

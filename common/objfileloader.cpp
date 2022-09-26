@@ -50,7 +50,7 @@ bool ObjFileLoader::loadObjFile(std::string sObjFile, FileObject &stFileObject) 
                     stFileObject.vertex.push_back({QVector3D(0, 0, 0), vec});
                     m_nVertexCount++;
                 } else {
-                    stFileObject.vertex[nNormalIdx].normal = vec;
+                    stFileObject.vertex[nNormalIdx].vnormal_ = vec;
                 }
                 nNormalIdx++;
             } else if (value[1] == ' ') {
@@ -58,7 +58,7 @@ bool ObjFileLoader::loadObjFile(std::string sObjFile, FileObject &stFileObject) 
                     stFileObject.vertex.push_back({vec, QVector3D(0, 0, 0)});
                     m_nVertexCount++;
                 } else {
-                    stFileObject.vertex[nVertexIdx].position = vec;
+                    stFileObject.vertex[nVertexIdx].vposition_ = vec;
                 }
                 nVertexIdx++;
             }
@@ -77,12 +77,12 @@ bool ObjFileLoader::pushToData(FileObject &stFileObject) {
     m_nDataCount = 0;
     for (size_t i = 0; i < m_nVertexCount; ++i) {
         GLfloat *p = m_data.data() + m_nDataCount;
-        *p++ = stFileObject.vertex[i].position.x();
-        *p++ = stFileObject.vertex[i].position.y();
-        *p++ = stFileObject.vertex[i].position.z();
-        *p++ = stFileObject.vertex[i].normal.x();
-        *p++ = stFileObject.vertex[i].normal.x();
-        *p++ = stFileObject.vertex[i].normal.x();
+        *p++ = stFileObject.vertex[i].vposition_.x();
+        *p++ = stFileObject.vertex[i].vposition_.y();
+        *p++ = stFileObject.vertex[i].vposition_.z();
+        *p++ = stFileObject.vertex[i].vnormal_.x();
+        *p++ = stFileObject.vertex[i].vnormal_.x();
+        *p++ = stFileObject.vertex[i].vnormal_.x();
         m_nDataCount += 6;
     }
     for (size_t i = 0; i < m_nFaceCount; ++i) {

@@ -2,6 +2,7 @@
 
 in vec3 posVertex;
 in vec3 colVertex;
+
 out vec4 col;
 uniform mat4 mvp_matrix;
 

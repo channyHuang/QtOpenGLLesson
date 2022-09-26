@@ -3,11 +3,9 @@ HEADER_FILES = $$files($${PWD}/*.h, false)
 
 DEFINES += COMMON_PRO_PATH=$${PWD}
 
+SOURCES += $${SOURCE_FILES}
 
-SOURCES += $${SOURCE_FILES} \
-
-
-HEADERS += $${HEADER_FILES} \
+HEADERS += $${HEADER_FILES}
 
 RESOURCE_FILES = $$files($${PWD}/*.qrc, false)
 

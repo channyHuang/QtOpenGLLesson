@@ -11,9 +11,15 @@
 #include "vector3i.h"
 
 struct Vertex {
-    QVector3D position;
-    QVector3D normal;
-    QVector3D texcoord;
+    QVector3D vposition_;
+    QVector3D vnormal_;
+    QVector3D vcol_;
+    QVector2D vtexcoord_;
+
+    Vertex() : vcol_(QVector3D(1.f, 0.f, 0.f)) {}
+    Vertex(QVector3D vposition, QVector3D vnormal) : vposition_(vposition), vnormal_(vnormal) {}
+    Vertex(QVector3D vposition, QVector3D vnormal, QVector3D vcol, QVector2D vtexcoord)
+        : vposition_(vposition), vnormal_(vnormal), vcol_(vcol), vtexcoord_(vtexcoord) {}
 };
 
 struct FileObject {

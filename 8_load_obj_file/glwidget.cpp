@@ -99,9 +99,9 @@ void GlWidget::initializeGL() {
     m_shader->enableAttributeArray(stShaderLocation.posTexture);
     m_shader->enableAttributeArray(stShaderLocation.norVertex);
 
-    m_shader->setAttributeBuffer(stShaderLocation.posVertex, GL_FLOAT, offsetof(Vertex, position), 3, sizeof(VertexData));
-    m_shader->setAttributeBuffer(stShaderLocation.posTexture, GL_FLOAT, offsetof(Vertex, texcoord), 2, sizeof(VertexData));
-    m_shader->setAttributeBuffer(stShaderLocation.norVertex, GL_FLOAT, offsetof(Vertex, normal), 3, sizeof(VertexData));
+    m_shader->setAttributeBuffer(stShaderLocation.posVertex, GL_FLOAT, offsetof(Vertex, vposition_), 3, sizeof(Vertex));
+    m_shader->setAttributeBuffer(stShaderLocation.posTexture, GL_FLOAT, offsetof(Vertex, vtexcoord_), 2, sizeof(Vertex));
+    m_shader->setAttributeBuffer(stShaderLocation.norVertex, GL_FLOAT, offsetof(Vertex, vnormal_), 3, sizeof(Vertex));
 
     m_shader->release();
     m_ibo->release();

@@ -10,6 +10,8 @@
 #include <QTimer>
 #include <QQuaternion>
 
+#include "regularfun.h"
+
 class GlWidget : public QOpenGLWidget
 {
     Q_OBJECT

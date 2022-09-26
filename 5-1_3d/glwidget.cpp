@@ -30,21 +30,14 @@ void GlWidget::initShader() {
     stShaderLocation.mvpMatrixUniform = m_shader->uniformLocation("mvp_matrix");
 }
 
-QVector3D getColor(int index = -1) {
-    QVector3D colors[] = {QVector3D(1, 0, 0), QVector3D(0, 1, 0), QVector3D(0, 0, 1),
-                          QVector3D(1, 1, 0), QVector3D(1, 0, 1), QVector3D(0, 1, 1)};
-    if (index >= 0 && index < 6) return colors[index];
-    return colors[rand() % 6];
-}
-
 void GlWidget::initObject() {
     VertexData vertices[] = {
-        {QVector3D(-0.045430, -0.045430, -0.750000), QVector3D(-0.061820, -0.061820, -2.597272), getColor()},
-        {QVector3D(-0.045430, -0.750000, -0.045430), QVector3D(-0.061820, -2.597272, -0.061820), getColor()},
-        {QVector3D(-0.750000, -0.045430, -0.045430), QVector3D(-2.597272, -0.061820, -0.061820), getColor()},
-        {QVector3D(-0.045430, -0.045430, 0.749414), QVector3D(-0.052176, -0.052176, 2.243320), getColor()},
-        {QVector3D(-0.045430, 0.749414, -0.045430), QVector3D(-0.052176, 2.243320, -0.052176), getColor()},
-        {QVector3D(0.749414, -0.045430, -0.045430), QVector3D(2.243320, -0.052176, -0.052176), getColor()},
+        {QVector3D(-0.045430, -0.045430, -0.750000), QVector3D(-0.061820, -0.061820, -2.597272), Common::getColor()},
+        {QVector3D(-0.045430, -0.750000, -0.045430), QVector3D(-0.061820, -2.597272, -0.061820), Common::getColor()},
+        {QVector3D(-0.750000, -0.045430, -0.045430), QVector3D(-2.597272, -0.061820, -0.061820), Common::getColor()},
+        {QVector3D(-0.045430, -0.045430, 0.749414), QVector3D(-0.052176, -0.052176, 2.243320), Common::getColor()},
+        {QVector3D(-0.045430, 0.749414, -0.045430), QVector3D(-0.052176, 2.243320, -0.052176), Common::getColor()},
+        {QVector3D(0.749414, -0.045430, -0.045430), QVector3D(2.243320, -0.052176, -0.052176), Common::getColor()},
     };
     nVertexCount = 6;
 #ifdef TRIANGLE_STRIP

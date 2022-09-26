@@ -2,10 +2,12 @@
 
 //in highp vec3 vert;
 //in highp vec3 vertNormal;
-uniform highp vec3 lightPos;
-
-uniform sampler2D texture;
 //in vec2 v_texcoord;
+
+uniform highp vec3 lightPos;
+uniform sampler2D texture;
+
+in vec4 col;
 out vec4 pre_gl_FragColor;
 
 void main(void)
@@ -18,5 +20,5 @@ void main(void)
     //col = normalize(col);
 
     //gl_FragColor = col;
-    pre_gl_FragColor = vec4(1.f, 0.f, 0.f, 1.f);
+    pre_gl_FragColor = col;//vec4(1.f, 0.f, 0.f, 1.f);
 }

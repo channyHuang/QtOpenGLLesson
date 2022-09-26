@@ -10,9 +10,12 @@
 #include <QTimer>
 #include <QQuaternion>
 #include <QMouseEvent>
+#include <QKeyEvent>
 #include <QOpenGLTexture>
 
 #include "objfileloader.h"
+#include "camera.h"
+#include "regularfun.h"
 
 class GlWidget : public QOpenGLWidget
 {
@@ -28,9 +31,11 @@ protected:
 
     void mousePressEvent(QMouseEvent *e) override;
     void mouseMoveEvent(QMouseEvent *e) override;
+    void keyPressEvent(QKeyEvent *e) override;
 private:
     void initShader();
     void initObject();
+    void initObjectUsingSpecificData();
     // use mouse to rotate
     void setRotation(int angle, int axis);
     void initTexture();
@@ -40,17 +45,12 @@ private:
         GLuint posVertex;
         GLuint norVertex;
         GLuint posTexture;
+        GLuint colVertex;
         GLuint mvMatrixUniform;
         GLuint projMatrixUniform;
         GLuint lightPos;
         GLuint normalMatrixUniform;
     } stShaderLocation;
-
-    struct VertexData {
-        QVector3D position;
-        QVector3D normal;
-        QVector2D texcoord;
-    };
 
 private:
     QOpenGLVertexArrayObject *m_vao;
@@ -74,6 +74,8 @@ private:
     // model file loader
     ObjFileLoader m_fileLoader;
     FileObject m_dataObject;
+
+    Camera camera;
 };
 
 #endif // GLWIDGET_H
